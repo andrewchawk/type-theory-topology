@@ -29,12 +29,40 @@ _∈_ e s = true ≅ s e
 _⊆_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> Set a
 _⊆_ {_} {A} s1 s2 = (e : A) -> e ∈ s1 -> e ∈ s2
 
+module SubsetProperties {a : Level} {A : Set a} (s1 : NSet A) where
+  self-is-subset : s1 ⊆ s1
+  self-is-subset = {!!}
+
+  null-set-is-subset : (\ _ -> false) ⊆ s1
+  null-set-is-subset = {!!}
+
 _⊂_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> Set a
 _⊂_ s1 s2 = s1 ⊆ s2 × ¬ s2 ⊆ s1
 
 -- | @P S@ is the power set of @S@.  Equivalently, @P S@ is the set of all subsets of @S@.
 P : {a : Level} -> {A : Set a} -> NSet A -> NSet (NSet A)
 P = {!!}
+
+module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
+  contains-union : (s1 s2 : NSet A) -> s1 ∈ P N -> s2 ∈ P N -> (s1 ∪ s2) ∈ P N
+  contains-union = {!!}
+
+  contains-intersection : (s : List (NSet A)) ->
+                          All (\ e -> e ∈ P N) s ->
+                          ⋂ s ∈ P N
+  contains-intersection = {!!}
+
+  contains-all-subsets : {s : NSet A} -> s ⊆ N → s ∈ P N
+  contains-all-subsets = {!!}
+
+  contains-no-non-subsets : {s : NSet A} -> ¬ s ⊆ N -> ¬ s ∈ P N
+  contains-no-non-subsets = {!!}
+
+  contains-self : N ∈ P N
+  contains-self = contains-all-subsets (SubsetProperties.self-is-subset N)
+
+  contains-null-set : (\ _ -> false) ∈ P N
+  contains-null-set = contains-all-subsets (SubsetProperties.null-set-is-subset N)
 
 -- | Any value @t@ of type @Topology N@ is a topology on @N@.  @Topology.collection N@ is @t@'s collection, and the other fields indicate that @t@ really is a topology.
 record Topology {a : Level}
@@ -66,12 +94,12 @@ discreteTopology : {a : Level} -> {A : Set a} -> (N : NSet A) -> DiscreteTopolog
 discreteTopology N = record
   {topology = record
      {collection = P N
-     ;hasN = {!!}
-     ;hasEmptySet = {!!}
-     ;hasUnion = {!!}
-     ;hasIntersection = {!!}
+     ;hasN = PowerSetProperties.contains-self N
+     ;hasEmptySet = PowerSetProperties.contains-null-set N
+     ;hasUnion = PowerSetProperties.contains-union N
+     ;hasIntersection = PowerSetProperties.contains-intersection N
      }
-  ;isDiscrete = {!!}}
+  ;isDiscrete = (\ e -> e , e) (SubsetProperties.self-is-subset (P N))}
 
 -- | @IndiscreteTopology@ values represent indiscrete topologies.
 -- Indicating that the empty set and @N@ are elements of
