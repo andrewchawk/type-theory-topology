@@ -40,10 +40,16 @@ _⊆_ {_} {A} s1 s2 = (e : A) -> e ∈ s1 -> e ∈ s2
 
 module SubsetProperties {a : Level} {A : Set a} (s1 : NSet A) where
   self-is-subset : s1 ⊆ s1
-  self-is-subset = {!!}
+  self-is-subset e x = x
 
   null-set-is-subset : (\ _ -> false) ⊆ s1
-  null-set-is-subset = {!!}
+  null-set-is-subset x ()
+
+  big-intersection-of-subsets-is-subset :
+    (sl : List (NSet A)) ->
+    All (λ e -> e ⊆ s1) sl ->
+    ⋂ sl ⊆ s1
+  big-intersection-of-subsets-is-subset = {!!}
 
 _⊂_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> Set a
 _⊂_ s1 s2 = s1 ⊆ s2 × ¬ s2 ⊆ s1
@@ -56,16 +62,19 @@ module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
   contains-union : (s1 s2 : NSet A) -> s1 ∈ P N -> s2 ∈ P N -> (s1 ∪ s2) ∈ P N
   contains-union = {!!}
 
-  contains-intersection : (s : List (NSet A)) ->
-                          All (\ e -> e ∈ P N) s ->
-                          ⋂ s ∈ P N
-  contains-intersection = {!!}
-
   contains-all-subsets : {s : NSet A} -> s ⊆ N → s ∈ P N
   contains-all-subsets = {!!}
 
-  contains-no-non-subsets : {s : NSet A} -> ¬ s ⊆ N -> ¬ s ∈ P N
-  contains-no-non-subsets = {!!}
+  element-only-if-subset : {s : NSet A} -> s ∈ P N -> s ⊆ N
+  element-only-if-subset = {!!}
+
+  contains-intersection : (s : List (NSet A)) ->
+                          All (\ e -> e ∈ P N) s ->
+                          ⋂ s ∈ P N
+  contains-intersection s = contains-all-subsets ∘ bigint-is-subset N s ∘ elements-to-subsets
+    where
+    bigint-is-subset = SubsetProperties.big-intersection-of-subsets-is-subset
+    elements-to-subsets = Data.List.Relation.Unary.All.map element-only-if-subset
 
   contains-self : N ∈ P N
   contains-self = contains-all-subsets (SubsetProperties.self-is-subset N)
