@@ -51,31 +51,57 @@ record Topology {a : Level}
                       All (\ e -> e ∈ collection) s ->
                       ⋂ s ∈ collection
 
-discreteTopology : {a : Level} -> {A : Set a} -> (N : NSet A) -> Topology N
-discreteTopology N = record
-  {collection = P N
-  ;hasN = {!!}
-  ;hasEmptySet = {!!}
-  ;hasUnion = {!!}
-  ;hasIntersection = {!!}
-  }
+-- | @DiscreteTopology@ values represent discrete topologies.
+record DiscreteTopology {a : Level}
+                        {A : Set a}
+                        (N : NSet A) : Set (Level.suc a) where
+  field
+    topology : Topology N
+    proof-of-discreteness : P N ⊆ Topology.collection topology ×
+                            Topology.collection topology ⊆ P N
 
-indiscreteTopology : {a : Level} -> {A : Set a} -> (N : NSet A) -> Topology N
+-- | @discreteTopology N@ is a discrete topology on @N@.
+discreteTopology : {a : Level} -> {A : Set a} -> (N : NSet A) -> DiscreteTopology N
+discreteTopology N = record
+  {topology = record
+     {collection = P N
+     ;hasN = {!!}
+     ;hasEmptySet = {!!}
+     ;hasUnion = {!!}
+     ;hasIntersection = {!!}
+     }
+  ;proof-of-discreteness = {!!}}
+
+-- | @IndiscreteTopology@ values represent indiscrete topologies.
+-- Indicating that the empty set and @N@ are elements of
+-- @Topology.collection (IndiscreteTopology.topology i)@ would be redundant;
+-- @Topology@ records already have fields which make these guarantees.
+record IndiscreteTopology {a : Level}
+                          {A : Set a}
+                          (N : NSet A) : Set (Level.suc a) where
+  field
+    topology : Topology N
+    proof-of-indiscreteness : (n : NSet A) ->
+                              n ≇ N ->
+                              n ≇ (\ (_ : A) -> false)
+                              -> false ≅ Topology.collection topology n
+
+-- | @indiscreteTopology n@ is an indiscrete topology on @N@.
+indiscreteTopology : {a : Level} ->
+                     {A : Set a} ->
+                     (N : NSet A) ->
+                     IndiscreteTopology N
 indiscreteTopology {a} {A} N = record
-  {collection = f
-  ;hasN = {!!}
-  ;hasEmptySet = {!!}
-  ;hasUnion = {!!}
-  ;hasIntersection = {!!}
-  }
+  {topology = record
+     {collection = f
+     ;hasN = {!!}
+     ;hasEmptySet = {!!}
+     ;hasUnion = {!!}
+     ;hasIntersection = {!!}
+     }
+  ;proof-of-indiscreteness = {!!}}
   where
   f = {!!}
-  recognizesNothingElse :
-    (n : NSet A) ->
-    n ≇ N ->
-    n ≇ (\ (_ : A) -> false) ->
-    false ≅ f n
-  recognizesNothingElse = {!!}
   
 _isFinerThan_ : {a : Level} ->
                 {A : Set a} ->
