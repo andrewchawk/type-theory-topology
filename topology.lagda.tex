@@ -7,6 +7,7 @@ open import Data.Product
 open import Data.List.Relation.Unary.All using (All)
 open import Relation.Binary.HeterogeneousEquality
 
+-- | The author hopes that this definition will be sufficient but increasingly doubts the sufficiency.  Anyway, in the meantime, this paper uses @NSet@ to represent sets.  Any value @n@ of type @NSet A@ represents the set \(t\) such that for all values @e@ of type @A@, @n e@ if and only if @e@ is an element of \(t\).
 NSet : {a : Level} -> Set a -> Set a
 NSet A = A -> Bool
 
