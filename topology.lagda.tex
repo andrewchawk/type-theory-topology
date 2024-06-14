@@ -1,4 +1,5 @@
 \begin{code}
+open import Relation.Nullary.Negation
 open import Level
 open import Function
 open import Data.Bool
@@ -29,7 +30,7 @@ _⊆_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> Set a
 _⊆_ {_} {A} s1 s2 = (e : A) -> e ∈ s1 -> e ∈ s2
 
 _⊂_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> Set a
-_⊂_ = {!!}
+_⊂_ s1 s2 = s1 ⊆ s2 × ¬ s2 ⊆ s1
 
 -- | @P S@ is the power set of @S@.  Equivalently, @P S@ is the set of all subsets of @S@.
 P : {a : Level} -> {A : Set a} -> NSet A -> NSet (NSet A)
@@ -57,8 +58,8 @@ record DiscreteTopology {a : Level}
                         (N : NSet A) : Set (Level.suc a) where
   field
     topology : Topology N
-    proof-of-discreteness : P N ⊆ Topology.collection topology ×
-                            Topology.collection topology ⊆ P N
+    isDiscrete : P N ⊆ Topology.collection topology ×
+                 Topology.collection topology ⊆ P N
 
 -- | @discreteTopology N@ is a discrete topology on @N@.
 discreteTopology : {a : Level} -> {A : Set a} -> (N : NSet A) -> DiscreteTopology N
@@ -70,7 +71,7 @@ discreteTopology N = record
      ;hasUnion = {!!}
      ;hasIntersection = {!!}
      }
-  ;proof-of-discreteness = {!!}}
+  ;isDiscrete = {!!}}
 
 -- | @IndiscreteTopology@ values represent indiscrete topologies.
 -- Indicating that the empty set and @N@ are elements of
@@ -81,10 +82,10 @@ record IndiscreteTopology {a : Level}
                           (N : NSet A) : Set (Level.suc a) where
   field
     topology : Topology N
-    proof-of-indiscreteness : (n : NSet A) ->
-                              n ≇ N ->
-                              n ≇ (\ (_ : A) -> false)
-                              -> false ≅ Topology.collection topology n
+    isIndiscrete : (n : NSet A) ->
+                   n ≇ N ->
+                   n ≇ (\ (_ : A) -> false)
+                   -> false ≅ Topology.collection topology n
 
 -- | @indiscreteTopology n@ is an indiscrete topology on @N@.
 indiscreteTopology : {a : Level} ->
@@ -99,7 +100,7 @@ indiscreteTopology {a} {A} N = record
      ;hasUnion = {!!}
      ;hasIntersection = {!!}
      }
-  ;proof-of-indiscreteness = {!!}}
+  ;isIndiscrete = {!!}}
   where
   f = {!!}
   
@@ -111,9 +112,7 @@ _isFinerThan_ : {a : Level} ->
                 Set _
 t1 isFinerThan t2 = Topology.collection t2 ⊆ Topology.collection t1
 
-record Basis {a : Level}
-             {A : Set a}
-             (N : NSet A) : Set a where
+record Basis {a : Level} {A : Set a} (N : NSet A) : Set a where
   field
    elements : NSet (NSet A)
    allContainedByBasisElements :
