@@ -9,6 +9,7 @@ open import Data.List.Relation.Unary.All using (All)
 open import Relation.Binary.HeterogeneousEquality
 open import Data.Sum
 open import Data.Empty.Polymorphic
+open import Data.Unit.Polymorphic
 
 -- | This paper uses @NSet@ to represent sets.  Any value @n@ of type @NSet A@
 -- represents the set \(t\) such that for all values @e@ of type @A@, a value of
@@ -55,8 +56,10 @@ _⊂_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> Set a
 _⊂_ s1 s2 = s1 ⊆ s2 × ¬ s2 ⊆ s1
 
 -- | @P S@ is the power set of @S@.  Equivalently, @P S@ is the set of all subsets of @S@.
+--
+-- One can easily say that a value \(e\) is an element of the power set of \(S\) if and only if \(e\) is a subset of \(S\).  Accordingly, @P@ is pretty simple.
 P : {a : Level} -> {A : Set a} -> NSet A -> NSet (NSet A)
-P = {!!}
+P {a} {A} s e = e ⊆ s × ⊤
 
 module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
   contains-union : (s1 s2 : NSet A) -> s1 ∈ P N -> s2 ∈ P N -> (s1 ∪ s2) ∈ P N
