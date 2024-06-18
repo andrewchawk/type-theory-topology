@@ -7,33 +7,33 @@ open import Data.List
 open import Data.Product
 open import Data.List.Relation.Unary.All using (All)
 open import Relation.Binary.HeterogeneousEquality
+open import Data.Sum
+open import Data.Empty.Polymorphic
 
--- | The author hopes that this definition will be sufficient but increasingly
--- doubts the sufficiency.  Anyway, in the meantime, this paper uses @NSet@ to
--- represent sets.  Any value @n@ of type @NSet A@ represents the set \(t\)
--- such that for all values @e@ of type @A@, @n e@ if and only if @e@ is an
--- element of \(t\).
+-- | This paper uses @NSet@ to represent sets.  Any value @n@ of type @NSet A@
+-- represents the set \(t\) such that for all values @e@ of type @A@, a value of
+-- type @n e@ exists if and only if @e@ is an element of \(t\).
 --
 -- The author chose the name "NSet" because "Set" was already taken.  The "N"
 -- is arbitrary but can be interpreted as meaning "new" or something by
 -- readers who need justifications for even the most arbitrary choices.
 -- Etymology only goes so far.
-NSet : {a : Level} -> Set a -> Set a
-NSet A = A -> Bool
+NSet : {a : Level} -> Set a -> Set (Level.suc a)
+NSet {a} A = A -> Set a
 
 _∪_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> NSet A
-_∪_ s1 s2 = \ e -> s1 e ∨ s2 e
+_∪_ s1 s2 = \ e -> s1 e ⊎ s2 e
 
 _∩_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> NSet A
-_∩_ s1 s2 = \ e -> s1 e ∧ s2 e
+_∩_ s1 s2 = \ e -> s1 e × s2 e
 
 ⋂ : {a : Level} -> {A : Set a} -> List (NSet A) -> NSet A
-⋂ [] _ = false
+⋂ [] _ = ⊥
 ⋂ (x ∷ []) = x
 ⋂ (x ∷ xs) = x ∩ ⋂ xs
 
-_∈_ : {a : Level} -> {A : Set a} -> A -> NSet A -> Set
-_∈_ e s = true ≅ s e
+_∈_ : {a : Level} -> {A : Set a} -> A -> NSet A -> Set a
+_∈_ e s = s e
 
 _⊆_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> Set a
 _⊆_ {_} {A} s1 s2 = (e : A) -> e ∈ s1 -> e ∈ s2
@@ -42,7 +42,7 @@ module SubsetProperties {a : Level} {A : Set a} (s1 : NSet A) where
   self-is-subset : s1 ⊆ s1
   self-is-subset e x = x
 
-  null-set-is-subset : (\ _ -> false) ⊆ s1
+  null-set-is-subset : (\ _ -> ⊥) ⊆ s1
   null-set-is-subset x ()
 
   big-intersection-of-subsets-is-subset :
@@ -62,7 +62,7 @@ module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
   contains-union : (s1 s2 : NSet A) -> s1 ∈ P N -> s2 ∈ P N -> (s1 ∪ s2) ∈ P N
   contains-union = {!!}
 
-  contains-all-subsets : {s : NSet A} -> s ⊆ N → s ∈ P N
+  contains-all-subsets : {s : NSet A} -> s ⊆ N -> s ∈ P N
   contains-all-subsets = {!!}
 
   element-only-if-subset : {s : NSet A} -> s ∈ P N -> s ⊆ N
@@ -79,7 +79,7 @@ module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
   contains-self : N ∈ P N
   contains-self = contains-all-subsets (SubsetProperties.self-is-subset N)
 
-  contains-null-set : (\ _ -> false) ∈ P N
+  contains-null-set : (\ _ -> ⊥) ∈ P N
   contains-null-set = contains-all-subsets (SubsetProperties.null-set-is-subset N)
 
 -- | Any value @t@ of type @Topology N@ is a topology on @N@.
@@ -87,10 +87,10 @@ module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
 -- that @t@ really is a topology.
 record Topology {a : Level}
                 {A : Set a}
-                (N : NSet A) : Set (Level.suc a) where
+                (N : NSet A) : Set (Level.suc (Level.suc a)) where
   field
     collection : NSet (NSet A)
-    hasEmptySet : (\ _ -> false) ∈ collection
+    hasEmptySet : (\ _ -> ⊥) ∈ collection
     hasN : N ∈ collection
     hasUnion : (s1 s2 : NSet A) ->
                s1 ∈ collection ->
@@ -103,7 +103,7 @@ record Topology {a : Level}
 -- | @DiscreteTopology@ values represent discrete topologies.
 record DiscreteTopology {a : Level}
                         {A : Set a}
-                        (N : NSet A) : Set (Level.suc a) where
+                        (N : NSet A) : Set (Level.suc (Level.suc a)) where
   field
     topology : Topology N
     isDiscrete : P N ⊆ Topology.collection topology ×
@@ -127,13 +127,13 @@ discreteTopology N = record
 -- @Topology@ records already have fields which make these guarantees.
 record IndiscreteTopology {a : Level}
                           {A : Set a}
-                          (N : NSet A) : Set (Level.suc a) where
+                          (N : NSet A) : Set (Level.suc (Level.suc a)) where
   field
     topology : Topology N
     isIndiscrete : (n : NSet A) ->
                    n ≇ N ->
-                   n ≇ (\ (_ : A) -> false)
-                   -> false ≅ Topology.collection topology n
+                   n ≇ (\ (_ : A) -> ⊥)
+                   -> ¬ Topology.collection topology n
 
 -- | @indiscreteTopology n@ is an indiscrete topology on @N@.
 indiscreteTopology : {a : Level} ->
@@ -160,7 +160,9 @@ _isFinerThan_ : {a : Level} ->
                 Set _
 t1 isFinerThan t2 = Topology.collection t2 ⊆ Topology.collection t1
 
-record Basis {a : Level} {A : Set a} (N : NSet A) : Set a where
+record Basis {a : Level}
+             {A : Set a}
+             (N : NSet A) : Set (Level.suc Level.zero Level.⊔ Level.suc (Level.suc a)) where
   field
    elements : NSet (NSet A)
    allContainedByBasisElements :
