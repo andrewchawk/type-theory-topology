@@ -52,6 +52,13 @@ module SubsetProperties {a : Level} {A : Set a} (s1 : NSet A) where
     ⋂ sl ⊆ s1
   big-intersection-of-subsets-is-subset = {!!}
 
+  union-is-subset :
+    (s2 s3 : NSet A) ->
+    s2 ⊆ s1 ->
+    s3 ⊆ s1 ->
+    (s2 ∪ s3) ⊆ s1
+  union-is-subset = {!!}
+
 _⊂_ : {a : Level} -> {A : Set a} -> NSet A -> NSet A -> Set a
 _⊂_ s1 s2 = s1 ⊆ s2 × ¬ s2 ⊆ s1
 
@@ -62,14 +69,18 @@ P : {a : Level} -> {A : Set a} -> NSet A -> NSet (NSet A)
 P {a} {A} s e = e ⊆ s × ⊤
 
 module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
-  contains-union : (s1 s2 : NSet A) -> s1 ∈ P N -> s2 ∈ P N -> (s1 ∪ s2) ∈ P N
-  contains-union = {!!}
-
-  contains-all-subsets : {s : NSet A} -> s ⊆ N -> s ∈ P N
-  contains-all-subsets = {!!}
-
   element-only-if-subset : {s : NSet A} -> s ∈ P N -> s ⊆ N
   element-only-if-subset = {!!}
+
+  contains-union : (s1 s2 : NSet A) -> s1 ∈ P N -> s2 ∈ P N -> (s1 ∪ s2) ∈ P N
+  contains-union s1 s2 s1elem s2elem =
+    SubsetProperties.union-is-subset N s1 s2 s1sub s2sub , tt
+    where
+      s1sub = element-only-if-subset s1elem
+      s2sub = element-only-if-subset s2elem
+
+  contains-all-subsets : {s : NSet A} -> s ⊆ N -> s ∈ P N
+  contains-all-subsets subset = subset , tt
 
   contains-intersection : (s : List (NSet A)) ->
                           All (\ e -> e ∈ P N) s ->
