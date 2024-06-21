@@ -56,7 +56,7 @@ P {a} {A} s e = e ⊆ s × ⊤
 
 module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
   element-only-if-subset : {s : NSet A} -> s ∈ P N -> s ⊆ N
-  element-only-if-subset = {!!}
+  element-only-if-subset = proj₁
 
   contains-union : (s1 s2 : NSet A) -> s1 ∈ P N -> s2 ∈ P N -> (s1 ∪ s2) ∈ P N
   contains-union s1 s2 s1elem s2elem =
@@ -143,14 +143,27 @@ indiscreteTopology : {a : Level} ->
 indiscreteTopology {a} {A} N = record
   {topology = record
      {collection = f
-     ;hasN = {!!}
-     ;hasEmptySet = {!!}
+     ;hasN = inj₁ refl
+      -- Agda 2.6.4.3 with standard-library-2.1 fails to understand that refl is
+      -- appropriate for the hasEmptySet definition.
+     ;hasEmptySet = inj₂ {!!}
      ;hasUnion = {!!}
      ;hasIntersection = {!!}
      }
-  ;isIndiscrete = {!!}}
+   -- The combination of Agda 2.6.4.3 and the standard library has similar
+   -- problems with the following definition:
+  ;isIndiscrete = \ n N1 N2 -> neither-implies-neither N1 {!!}}
   where
-  f = {!!}
+  f : NSet (NSet A)
+  f x = x ≅ N ⊎ x ≅ (λ (_ : NSet A) → ⊥ {a})
+  neither-implies-neither :
+    {a b : Level} ->
+    {A : Set a} ->
+    {B : Set b} ->
+    ¬ A ->
+    ¬ B ->
+    ¬ (A ⊎ B)
+  neither-implies-neither = {!!}
   
 _isFinerThan_ : {a : Level} ->
                 {A : Set a} ->
