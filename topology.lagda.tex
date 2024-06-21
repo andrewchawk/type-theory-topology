@@ -23,11 +23,6 @@ open import Relation.Unary hiding (⋂)
 NSet : {a : Level} -> Set a -> Set (Level.suc a)
 NSet {a} A = Pred A a
 
-⋂ : {a : Level} -> {A : Set a} -> List (NSet A) -> NSet A
-⋂ [] _ = ⊥
-⋂ (x ∷ []) = x
-⋂ (x ∷ xs) = x ∩ ⋂ xs
-
 module SubsetProperties {a : Level} {A : Set a} (s1 : NSet A) where
   self-is-subset : s1 ⊆ s1
   self-is-subset x = x
@@ -35,11 +30,12 @@ module SubsetProperties {a : Level} {A : Set a} (s1 : NSet A) where
   null-set-is-subset : (\ _ -> ⊥ {a}) ⊆ s1
   null-set-is-subset ()
 
-  big-intersection-of-subsets-is-subset :
-    (sl : List (NSet A)) ->
-    All (λ e -> e ⊆ s1) sl ->
-    ⋂ sl ⊆ s1
-  big-intersection-of-subsets-is-subset = {!!}
+  intersection-of-subsets-is-subset :
+    (sl sm : NSet A) ->
+    sl ⊆ s1 ->
+    sm ⊆ s1 ->
+    sl ∩ sm ⊆ s1
+  intersection-of-subsets-is-subset = {!!}
 
   union-is-subset :
     (s2 s3 : NSet A) ->
@@ -68,13 +64,13 @@ module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
   contains-all-subsets : {s : NSet A} -> s ⊆ N -> s ∈ P N
   contains-all-subsets subset = subset , tt
 
-  contains-intersection : (s : List (NSet A)) ->
-                          All (\ e -> e ∈ P N) s ->
-                          ⋂ s ∈ P N
-  contains-intersection s = contains-all-subsets ∘ bigint-is-subset N s ∘ elements-to-subsets
+  contains-intersection : (s1 s2 : NSet A) ->
+                          s1 ⊆ N ->
+                          s2 ⊆ N ->
+                          s1 ∩ s2 ∈ P N
+  contains-intersection s1 s2 s1e s2e = contains-all-subsets (int-is-subset N s1 s2 s1e s2e)
     where
-    bigint-is-subset = SubsetProperties.big-intersection-of-subsets-is-subset
-    elements-to-subsets = Data.List.Relation.Unary.All.map element-only-if-subset
+    int-is-subset = SubsetProperties.intersection-of-subsets-is-subset
 
   contains-self : N ∈ P N
   contains-self = contains-all-subsets (SubsetProperties.self-is-subset N)
@@ -96,9 +92,10 @@ record Topology {a : Level}
                s1 ∈ collection ->
                s2 ∈ collection ->
                (s1 ∪ s2) ∈ collection
-    hasIntersection : (s : List (NSet A)) ->
-                      All (\ e -> e ∈ collection) s ->
-                      ⋂ s ∈ collection
+    hasIntersection : (s1 s2 : NSet A) ->
+                      s1 ∈ collection ->
+                      s2 ∈ collection ->
+                      s1 ∩ s2 ∈ collection
 
 -- | @DiscreteTopology@ values represent discrete topologies.
 record DiscreteTopology {a : Level}
@@ -117,7 +114,11 @@ discreteTopology N = record
      ;hasN = PowerSetProperties.contains-self N
      ;hasEmptySet = PowerSetProperties.contains-null-set N
      ;hasUnion = PowerSetProperties.contains-union N
-     ;hasIntersection = PowerSetProperties.contains-intersection N
+     ;hasIntersection = \ s1 s2 s1e s2e ->
+       PowerSetProperties.contains-intersection
+         N s1 s2
+         (PowerSetProperties.element-only-if-subset N s1e)
+         (PowerSetProperties.element-only-if-subset N s2e)
      }
   ;isDiscrete = (\ e -> e , e) (SubsetProperties.self-is-subset (P N))}
 
