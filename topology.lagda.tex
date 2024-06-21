@@ -146,7 +146,7 @@ record IndiscreteTopology {a : Level}
     topology : Topology N
     isIndiscrete : (n : NSet A) ->
                    n ≇ N ->
-                   n ≇ (\ (_ : A) -> ⊥)
+                   n ≇ (\ (_ : A) -> ⊥ {a})
                    -> ¬ Topology.collection topology n
 
 -- | @indiscreteTopology n@ is an indiscrete topology on @N@.
