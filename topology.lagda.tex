@@ -6,7 +6,7 @@ open import Data.Bool
 open import Data.List
 open import Data.Product
 open import Data.List.Relation.Unary.All using (All)
-open import Relation.Binary.HeterogeneousEquality
+open import Relation.Binary.PropositionalEquality
 open import Data.Sum
 open import Data.Empty.Polymorphic
 open import Data.Unit.Polymorphic
@@ -79,7 +79,7 @@ module PowerSetProperties {a : Level} {A : Set a} (N : NSet A) where
   contains-self : N ∈ P N
   contains-self = contains-all-subsets (SubsetProperties.self-is-subset N)
 
-  contains-null-set : (\ _ -> ⊥ {a}) ∈ P N
+  contains-null-set : (\ _ -> ⊥) ∈ P N
   contains-null-set = contains-all-subsets (SubsetProperties.null-set-is-subset N)
 
 -- | Any value @t@ of type @Topology N@ is a topology on @N@.
@@ -131,8 +131,8 @@ record IndiscreteTopology {a : Level}
   field
     topology : Topology N
     isIndiscrete : (n : NSet A) ->
-                   n ≇ N ->
-                   n ≇ (\ (_ : A) -> ⊥ {a})
+                   n ≢ N ->
+                   n ≢ (\ _ -> ⊥)
                    -> ¬ Topology.collection topology n
 
 -- | @indiscreteTopology n@ is an indiscrete topology on @N@.
@@ -144,18 +144,14 @@ indiscreteTopology {a} {A} N = record
   {topology = record
      {collection = f
      ;hasN = inj₁ refl
-      -- Agda 2.6.4.3 with standard-library-2.1 fails to understand that refl is
-      -- appropriate for the hasEmptySet definition.
-     ;hasEmptySet = inj₂ {!!}
+     ;hasEmptySet = inj₂ refl
      ;hasUnion = {!!}
      ;hasIntersection = {!!}
      }
-   -- The combination of Agda 2.6.4.3 and the standard library has similar
-   -- problems with the following definition:
-  ;isIndiscrete = \ n N1 N2 -> neither-implies-neither N1 {!!}}
+  ;isIndiscrete = \ n N1 N2 -> neither-implies-neither N1 N2}
   where
   f : NSet (NSet A)
-  f x = x ≅ N ⊎ x ≅ (λ (_ : NSet A) → ⊥ {a})
+  f x = x ≡ N ⊎ x ≡ (λ _ → ⊥)
   neither-implies-neither :
     {a b : Level} ->
     {A : Set a} ->
